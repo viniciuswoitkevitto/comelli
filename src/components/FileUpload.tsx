@@ -1,60 +1,88 @@
-import { useCallback } from "react";
-import { Upload, FileJson } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Upload, FileSpreadsheet, Cloud, Loader2 } from "lucide-react";
 import { FleetData } from "@/types/fleet";
+import { fetchGoogleSheetsData, parseXLSXFile, parseJSONFile } from "@/utils/dataLoader";
 
 interface FileUploadProps {
   onDataLoaded: (data: FleetData[]) => void;
 }
 
 export function FileUpload({ onDataLoaded }: FileUploadProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
+
+  const handleGoogleSheetsSync = async () => {
+    setIsLoading(true);
+    setLoadingText("Sincronizando com Google Sheets...");
+    
+    try {
+      const data = await fetchGoogleSheetsData();
+      onDataLoaded(data);
+    } catch (error) {
+      alert("Erro ao sincronizar com Google Sheets. Verifique se a planilha está pública.");
+    } finally {
+      setIsLoading(false);
+      setLoadingText("");
+    }
+  };
+
   const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const json = JSON.parse(e.target?.result as string);
-          if (Array.isArray(json)) {
-            onDataLoaded(json);
-          } else {
-            alert("O arquivo deve conter um array de dados.");
-          }
-        } catch {
-          alert("Erro ao ler o arquivo JSON. Verifique o formato.");
+      setIsLoading(true);
+      setLoadingText("Processando arquivo...");
+
+      try {
+        let data: FleetData[];
+        
+        if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+          data = await parseXLSXFile(file);
+        } else if (file.name.endsWith(".json")) {
+          data = await parseJSONFile(file);
+        } else {
+          throw new Error("Formato não suportado. Use .xlsx, .xls ou .json");
         }
-      };
-      reader.readAsText(file);
+        
+        onDataLoaded(data);
+      } catch (error: any) {
+        alert(error.message || "Erro ao processar arquivo");
+      } finally {
+        setIsLoading(false);
+        setLoadingText("");
+      }
     },
     [onDataLoaded]
   );
 
   const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
+    async (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const file = event.dataTransfer.files?.[0];
       if (!file) return;
 
-      if (file.type !== "application/json" && !file.name.endsWith(".json")) {
-        alert("Por favor, envie um arquivo JSON.");
-        return;
-      }
+      setIsLoading(true);
+      setLoadingText("Processando arquivo...");
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const json = JSON.parse(e.target?.result as string);
-          if (Array.isArray(json)) {
-            onDataLoaded(json);
-          } else {
-            alert("O arquivo deve conter um array de dados.");
-          }
-        } catch {
-          alert("Erro ao ler o arquivo JSON. Verifique o formato.");
+      try {
+        let data: FleetData[];
+        
+        if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+          data = await parseXLSXFile(file);
+        } else if (file.name.endsWith(".json")) {
+          data = await parseJSONFile(file);
+        } else {
+          throw new Error("Formato não suportado. Use .xlsx, .xls ou .json");
         }
-      };
-      reader.readAsText(file);
+        
+        onDataLoaded(data);
+      } catch (error: any) {
+        alert(error.message || "Erro ao processar arquivo");
+      } finally {
+        setIsLoading(false);
+        setLoadingText("");
+      }
     },
     [onDataLoaded]
   );
@@ -66,35 +94,60 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div
-        className="glass-card rounded-2xl p-12 max-w-xl w-full text-center animate-scale-in cursor-pointer transition-all duration-300 hover:shadow-2xl hover:border-primary/30"
+        className="glass-card rounded-2xl p-8 md:p-12 max-w-2xl w-full text-center animate-scale-in"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
         <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <FileJson className="w-10 h-10 text-primary" />
+          <FileSpreadsheet className="w-10 h-10 text-primary" />
         </div>
         
         <h1 className="text-3xl font-bold mb-3">Painel de Frota</h1>
         <p className="text-muted-foreground mb-8">
-          Carregue seu arquivo JSON com os dados da frota para visualizar o painel de desempenho
+          Carregue seus dados para visualizar o painel de desempenho da frota
         </p>
 
-        <label className="block">
-          <input
-            type="file"
-            accept=".json,application/json"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <div className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25">
-            <Upload className="w-5 h-5" />
-            Selecionar Arquivo JSON
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4 py-8">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-muted-foreground">{loadingText}</p>
           </div>
-        </label>
+        ) : (
+          <>
+            {/* Google Sheets Sync Button */}
+            <button
+              onClick={handleGoogleSheetsSync}
+              className="w-full mb-4 inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground rounded-xl font-semibold transition-all duration-200 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/25"
+            >
+              <Cloud className="w-5 h-5" />
+              Sincronizar com Google Sheets
+            </button>
 
-        <p className="text-sm text-muted-foreground mt-6">
-          ou arraste e solte o arquivo aqui
-        </p>
+            <div className="flex items-center gap-4 my-6">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-sm text-muted-foreground">ou</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* File Upload */}
+            <label className="block cursor-pointer">
+              <input
+                type="file"
+                accept=".json,.xlsx,.xls"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <div className="inline-flex items-center justify-center gap-3 w-full px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25">
+                <Upload className="w-5 h-5" />
+                Enviar Arquivo (XLSX ou JSON)
+              </div>
+            </label>
+
+            <p className="text-sm text-muted-foreground mt-6">
+              Arraste e solte seu arquivo aqui
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
