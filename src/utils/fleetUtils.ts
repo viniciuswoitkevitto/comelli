@@ -1,0 +1,131 @@
+import { FleetData, ProcessedFleetData, FleetStats } from "@/types/fleet";
+
+export function parseFleetData(data: FleetData[]): ProcessedFleetData[] {
+  return data.map((item) => ({
+    ...item,
+    mediaNum: parseFloat(item.Média.replace(",", ".")),
+    mediaCarregadoNum: parseFloat(item["Média Carregado"].replace(",", ".")),
+  }));
+}
+
+export function calculateFleetStats(data: ProcessedFleetData[]): FleetStats {
+  if (data.length === 0) {
+    return {
+      avgMediaCarregado: 0,
+      totalKmRodado: 0,
+      totalKmCarregado: 0,
+      totalVeiculos: 0,
+      avgMedia: 0,
+      bestVehicle: null,
+      worstVehicle: null,
+    };
+  }
+
+  const uniqueVehicles = new Set(data.map((d) => d.Veículo));
+  const totalKmRodado = data.reduce((acc, d) => acc + d["KM Rodado"], 0);
+  const totalKmCarregado = data.reduce((acc, d) => acc + d["KM Rodado Carregado"], 0);
+  const avgMediaCarregado = data.reduce((acc, d) => acc + d.mediaCarregadoNum, 0) / data.length;
+  const avgMedia = data.reduce((acc, d) => acc + d.mediaNum, 0) / data.length;
+
+  const sortedByMedia = [...data].sort((a, b) => b.mediaCarregadoNum - a.mediaCarregadoNum);
+  const bestVehicle = sortedByMedia[0];
+  const worstVehicle = sortedByMedia[sortedByMedia.length - 1];
+
+  return {
+    avgMediaCarregado,
+    totalKmRodado,
+    totalKmCarregado,
+    totalVeiculos: uniqueVehicles.size,
+    avgMedia,
+    bestVehicle,
+    worstVehicle,
+  };
+}
+
+export function getVehicleRanking(data: ProcessedFleetData[]): ProcessedFleetData[] {
+  const vehicleAverages = new Map<string, { total: number; count: number; data: ProcessedFleetData }>();
+
+  data.forEach((item) => {
+    const existing = vehicleAverages.get(item.Veículo);
+    if (existing) {
+      existing.total += item.mediaCarregadoNum;
+      existing.count += 1;
+    } else {
+      vehicleAverages.set(item.Veículo, { total: item.mediaCarregadoNum, count: 1, data: item });
+    }
+  });
+
+  return Array.from(vehicleAverages.entries())
+    .map(([_, value]) => ({
+      ...value.data,
+      mediaCarregadoNum: value.total / value.count,
+    }))
+    .sort((a, b) => b.mediaCarregadoNum - a.mediaCarregadoNum);
+}
+
+export function getGroupStats(data: ProcessedFleetData[]) {
+  const groupStats = new Map<string, { totalKm: number; totalMedia: number; count: number }>();
+
+  data.forEach((item) => {
+    const existing = groupStats.get(item.Grupo);
+    if (existing) {
+      existing.totalKm += item["KM Rodado Carregado"];
+      existing.totalMedia += item.mediaCarregadoNum;
+      existing.count += 1;
+    } else {
+      groupStats.set(item.Grupo, {
+        totalKm: item["KM Rodado Carregado"],
+        totalMedia: item.mediaCarregadoNum,
+        count: 1,
+      });
+    }
+  });
+
+  return Array.from(groupStats.entries()).map(([grupo, stats]) => ({
+    grupo,
+    kmTotal: stats.totalKm,
+    mediaCarregado: stats.totalMedia / stats.count,
+  }));
+}
+
+export function getMonthlyTrend(data: ProcessedFleetData[]) {
+  const monthlyStats = new Map<string, { totalMedia: number; count: number; totalKm: number }>();
+
+  data.forEach((item) => {
+    const existing = monthlyStats.get(item.Mês);
+    if (existing) {
+      existing.totalMedia += item.mediaCarregadoNum;
+      existing.totalKm += item["KM Rodado Carregado"];
+      existing.count += 1;
+    } else {
+      monthlyStats.set(item.Mês, {
+        totalMedia: item.mediaCarregadoNum,
+        totalKm: item["KM Rodado Carregado"],
+        count: 1,
+      });
+    }
+  });
+
+  return Array.from(monthlyStats.entries())
+    .map(([mes, stats]) => ({
+      mes,
+      mediaCarregado: stats.totalMedia / stats.count,
+      kmTotal: stats.totalKm,
+    }))
+    .sort((a, b) => {
+      const [mesA, anoA] = a.mes.split("/");
+      const [mesB, anoB] = b.mes.split("/");
+      return anoA.localeCompare(anoB) || mesA.localeCompare(mesB);
+    });
+}
+
+export function formatNumber(num: number, decimals: number = 2): string {
+  return num.toLocaleString("pt-BR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+export function formatKm(num: number): string {
+  return num.toLocaleString("pt-BR");
+}
