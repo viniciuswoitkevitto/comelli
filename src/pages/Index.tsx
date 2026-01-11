@@ -20,7 +20,7 @@ const Index = () => {
     return <FileUpload onDataLoaded={handleDataLoaded} />;
   }
 
-  return <Dashboard data={data} onReset={handleReset} />;
+  return <Dashboard data={data} onReset={handleReset} onDataUpdate={handleDataLoaded} />;
 };
 
 export default Index;
