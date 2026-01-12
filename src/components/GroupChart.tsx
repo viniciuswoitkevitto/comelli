@@ -8,22 +8,22 @@ interface GroupChartProps {
   data: ProcessedFleetData[];
 }
 
-// Gradient definitions for each group - unique colors
-const GROUP_GRADIENTS: Record<string, { id: string; start: string; end: string }> = {
-  "FRANGO": { id: "gradientFrango", start: "#22c55e", end: "#16a34a" },
-  "SUINO": { id: "gradientSuino", start: "#3b82f6", end: "#1d4ed8" },
-  "CONFINAMENTO": { id: "gradientConfinamento", start: "#f97316", end: "#c2410c" },
-  "AVES": { id: "gradientAves", start: "#a855f7", end: "#7c3aed" },
-  "BOVINO": { id: "gradientBovino", start: "#ec4899", end: "#be185d" },
+// Cores únicas para cada grupo - sem repetição
+const GROUP_COLORS: Record<string, string> = {
+  "FRANGO": "#10b981",      // Esmeralda
+  "SUINO": "#3b82f6",       // Azul
+  "CONFINAMENTO": "#f59e0b", // Âmbar
+  "AVES": "#8b5cf6",        // Violeta
+  "BOVINO": "#ef4444",      // Vermelho
 };
 
-// Fallback colors for additional groups
+// Cores de fallback para grupos adicionais
 const FALLBACK_COLORS = [
-  { id: "gradient1", start: "#06b6d4", end: "#0891b2" },
-  { id: "gradient2", start: "#eab308", end: "#ca8a04" },
-  { id: "gradient3", start: "#84cc16", end: "#65a30d" },
-  { id: "gradient4", start: "#f43f5e", end: "#e11d48" },
-  { id: "gradient5", start: "#6366f1", end: "#4f46e5" },
+  "#06b6d4", // Ciano
+  "#ec4899", // Rosa
+  "#84cc16", // Lima
+  "#f97316", // Laranja
+  "#6366f1", // Índigo
 ];
 
 export function GroupChart({ data }: GroupChartProps) {
@@ -72,17 +72,6 @@ export function GroupChart({ data }: GroupChartProps) {
       <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ left: 20, right: 20 }}>
-            <defs>
-              {groups.map((grupo, index) => {
-                const gradient = GROUP_GRADIENTS[grupo] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-                return (
-                  <linearGradient key={grupo} id={`gradient-${grupo}`} x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={gradient.start} />
-                    <stop offset="100%" stopColor={gradient.end} />
-                  </linearGradient>
-                );
-              })}
-            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               dataKey="mes" 
@@ -110,19 +99,16 @@ export function GroupChart({ data }: GroupChartProps) {
                     <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
                       <div className="font-medium mb-2">{label}</div>
                       <div className="space-y-1">
-                        {sortedPayload.map((entry, index) => {
-                          const gradient = GROUP_GRADIENTS[entry.name as string] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-                          return (
-                            <div key={index} className="flex items-center gap-2 text-sm">
-                              <span 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ background: `linear-gradient(90deg, ${gradient.start}, ${gradient.end})` }} 
-                              />
-                              <span>{entry.name}:</span>
-                              <span className="font-bold">{formatNumber(entry.value as number)} km/l</span>
-                            </div>
-                          );
-                        })}
+                        {sortedPayload.map((entry, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <span 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: entry.color }} 
+                            />
+                            <span>{entry.name}:</span>
+                            <span className="font-bold">{formatNumber(entry.value as number)} km/l</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   );
@@ -132,15 +118,15 @@ export function GroupChart({ data }: GroupChartProps) {
             />
             <Legend />
             {groups.map((grupo, index) => {
-              const gradient = GROUP_GRADIENTS[grupo] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+              const color = GROUP_COLORS[grupo] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
               return (
                 <Line
                   key={grupo}
                   type="monotone"
                   dataKey={grupo}
-                  stroke={`url(#gradient-${grupo})`}
-                  strokeWidth={3}
-                  dot={{ r: 4, fill: gradient.start }}
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: color }}
                   name={grupo}
                 />
               );

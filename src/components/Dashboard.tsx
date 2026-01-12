@@ -106,9 +106,14 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
           </div>
         </div>
 
-        {/* Monthly Trend - Moved up */}
+        {/* Monthly Trend */}
         <div className="mb-6">
           <MonthlyTrendChart data={monthlyTrend} />
+        </div>
+
+        {/* Group Performance - Below Monthly Trend */}
+        <div className="mb-6">
+          <GroupChart data={data} />
         </div>
 
         {/* Vehicle Ranking - Full Width Horizontal */}
@@ -119,11 +124,6 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
         {/* Model Ranking */}
         <div className="mb-6">
           <ModelRanking models={modelRanking} />
-        </div>
-
-        {/* Group Performance - Full Width */}
-        <div className="mb-6">
-          <GroupChart data={data} />
         </div>
 
         {/* Group Tabs */}
