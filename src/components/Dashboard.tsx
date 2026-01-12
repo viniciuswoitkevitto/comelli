@@ -15,6 +15,7 @@ import { StatCard } from "./StatCard";
 import { VehicleRanking } from "./VehicleRanking";
 import { ModelRanking } from "./ModelRanking";
 import { GroupChart } from "./GroupChart";
+import { GroupTabs } from "./GroupTabs";
 import { MonthlyTrendChart } from "./MonthlyTrendChart";
 import { DataTable } from "./DataTable";
 
@@ -119,10 +120,20 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
           </div>
         </div>
 
+        {/* Monthly Trend - Moved up */}
+        <div className="mb-6">
+          <MonthlyTrendChart data={monthlyTrend} />
+        </div>
+
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <VehicleRanking vehicles={vehicleRanking} />
           <GroupChart data={groupStats} />
+        </div>
+
+        {/* Group Tabs */}
+        <div className="mb-6">
+          <GroupTabs data={data} />
         </div>
 
         {/* Model Ranking */}
@@ -130,12 +141,7 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
           <ModelRanking models={modelRanking} />
         </div>
 
-        {/* Monthly Trend */}
-        <div className="mb-6">
-          <MonthlyTrendChart data={monthlyTrend} />
-        </div>
-
-        {/* Data Table */}
+        {/* Data Table - Hidden by default */}
         <DataTable data={data} />
       </div>
     </div>

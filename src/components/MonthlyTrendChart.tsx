@@ -37,6 +37,7 @@ export function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
               axisLine={{ stroke: "hsl(var(--border))" }}
               domain={["dataMin - 0.5", "dataMax + 0.5"]}
+              tickFormatter={(value: number) => value.toFixed(2)}
             />
             <Tooltip
               contentStyle={{

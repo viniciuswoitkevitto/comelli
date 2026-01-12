@@ -15,16 +15,20 @@ interface ModelRankingProps {
 export function ModelRanking({ models }: ModelRankingProps) {
   const topModels = models.slice(0, 5);
   const worstModels = models.slice(-5).reverse();
-  const maxMedia = topModels[0]?.mediaCarregado || 1;
+  
+  // Use separate max values for each list to normalize bars within their own context
+  const topMaxMedia = topModels[0]?.mediaCarregado || 1;
+  const worstMaxMedia = worstModels[0]?.mediaCarregado || 1;
 
   const renderModelList = (
     items: ModelStats[],
     isTop: boolean,
-    baseMax: number
+    maxMedia: number
   ) => (
     <div className="space-y-3">
       {items.map((model, index) => {
-        const percentage = (model.mediaCarregado / baseMax) * 100;
+        // Normalize within the list's own range for consistent visual representation
+        const percentage = (model.mediaCarregado / maxMedia) * 100;
 
         return (
           <div key={model.modelo} className="flex items-center gap-3">
@@ -78,7 +82,7 @@ export function ModelRanking({ models }: ModelRankingProps) {
             <Trophy className="w-4 h-4 text-accent" />
             <span className="font-medium text-sm">5 Melhores</span>
           </div>
-          {renderModelList(topModels, true, maxMedia)}
+          {renderModelList(topModels, true, topMaxMedia)}
         </div>
 
         <div>
@@ -86,7 +90,7 @@ export function ModelRanking({ models }: ModelRankingProps) {
             <TrendingDown className="w-4 h-4 text-destructive" />
             <span className="font-medium text-sm">5 Piores</span>
           </div>
-          {renderModelList(worstModels, false, maxMedia)}
+          {renderModelList(worstModels, false, worstMaxMedia)}
         </div>
       </div>
     </div>
