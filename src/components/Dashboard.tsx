@@ -128,6 +128,10 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <VehicleRanking vehicles={vehicleRanking} />
+        </div>
+
+        {/* Group Performance - Full Width */}
+        <div className="mb-6">
           <GroupChart data={data} />
         </div>
 

@@ -44,11 +44,11 @@ export function GroupTabs({ data }: GroupTabsProps) {
     
     groups.forEach((grupo) => {
       const gData = groupData[grupo];
-      // Sort months from most recent to oldest
+      // Sort months from oldest to most recent (left to right on chart)
       const months = [...new Set(gData.map((d) => d.Mês))].sort((a, b) => {
         const [mesA, anoA] = a.split("/");
         const [mesB, anoB] = b.split("/");
-        return anoB.localeCompare(anoA) || mesB.localeCompare(mesA);
+        return anoA.localeCompare(anoB) || mesA.localeCompare(mesB);
       });
 
       result[grupo] = months.map((mes) => {

@@ -21,11 +21,11 @@ export function GroupChart({ data }: GroupChartProps) {
     // Get all unique groups
     const groups = [...new Set(data.map((d) => d.Grupo))].sort();
     
-    // Get all unique months sorted from most recent to oldest
+    // Get all unique months sorted from oldest to most recent (left to right)
     const months = [...new Set(data.map((d) => d.Mês))].sort((a, b) => {
       const [mesA, anoA] = a.split("/");
       const [mesB, anoB] = b.split("/");
-      return anoB.localeCompare(anoA) || mesB.localeCompare(mesA);
+      return anoA.localeCompare(anoB) || mesA.localeCompare(mesB);
     });
 
     // Calculate average for each group per month
@@ -48,7 +48,7 @@ export function GroupChart({ data }: GroupChartProps) {
   const groups = useMemo(() => [...new Set(data.map((d) => d.Grupo))].sort(), [data]);
 
   return (
-    <div className="glass-card rounded-2xl p-6 animate-slide-up" style={{ animationDelay: "300ms" }}>
+    <div className="glass-card rounded-2xl p-6 animate-slide-up w-full" style={{ animationDelay: "300ms" }}>
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-chart-4/20 flex items-center justify-center">
           <Layers className="w-5 h-5 text-chart-4" />
@@ -59,7 +59,7 @@ export function GroupChart({ data }: GroupChartProps) {
         </div>
       </div>
 
-      <div className="h-80">
+      <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ left: 20, right: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
