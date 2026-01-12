@@ -25,12 +25,14 @@ export function GroupTabs({ data }: GroupTabsProps) {
   }, [data, groups]);
 
   const groupRankings = useMemo(() => {
-    const result: Record<string, { top5: ProcessedFleetData[]; worst5: ProcessedFleetData[] }> = {};
+    const result: Record<string, { top: ProcessedFleetData[]; worst: ProcessedFleetData[] }> = {};
     groups.forEach((grupo) => {
       const ranking = getVehicleRanking(groupData[grupo]);
+      const totalVehicles = ranking.length;
+      const maxDisplay = Math.min(5, Math.floor(totalVehicles / 2));
       result[grupo] = {
-        top5: ranking.slice(0, 5),
-        worst5: ranking.slice(-5).reverse(),
+        top: ranking.slice(0, maxDisplay),
+        worst: ranking.slice(-maxDisplay).reverse(),
       };
     });
     return result;
@@ -42,10 +44,11 @@ export function GroupTabs({ data }: GroupTabsProps) {
     
     groups.forEach((grupo) => {
       const gData = groupData[grupo];
+      // Sort months from most recent to oldest
       const months = [...new Set(gData.map((d) => d.Mês))].sort((a, b) => {
         const [mesA, anoA] = a.split("/");
         const [mesB, anoB] = b.split("/");
-        return anoA.localeCompare(anoB) || mesA.localeCompare(mesB);
+        return anoB.localeCompare(anoA) || mesB.localeCompare(mesA);
       });
 
       result[grupo] = months.map((mes) => {
@@ -115,9 +118,9 @@ export function GroupTabs({ data }: GroupTabsProps) {
 
         {groups.map((grupo) => {
           const stats = calculateFleetStats(groupData[grupo]);
-          const { top5, worst5 } = groupRankings[grupo];
-          const topMax = top5[0]?.mediaCarregadoNum || 1;
-          const worstMax = worst5[0]?.mediaCarregadoNum || 1;
+          const { top, worst } = groupRankings[grupo];
+          const topMax = top[0]?.mediaCarregadoNum || 1;
+          const worstMax = worst[0]?.mediaCarregadoNum || 1;
 
           return (
             <TabsContent key={grupo} value={grupo} className="mt-0 space-y-6">
@@ -183,27 +186,33 @@ export function GroupTabs({ data }: GroupTabsProps) {
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "8px"
                         }}
-                        formatter={(value: number, name: string) => {
-                          const labels: Record<string, string> = {
-                            best1Value: "Melhor 1",
-                            best2Value: "Melhor 2",
-                            worst1Value: "Pior 1",
-                            worst2Value: "Pior 2"
-                          };
-                          return [formatNumber(value) + " km/l", labels[name] || name];
-                        }}
-                        labelFormatter={(label, payload) => {
-                          if (payload && payload.length > 0) {
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length > 0) {
                             const data = payload[0].payload;
                             return (
-                              `${label}\n` +
-                              `Melhor 1: ${data.best1}\n` +
-                              `Melhor 2: ${data.best2}\n` +
-                              `Pior 1: ${data.worst1}\n` +
-                              `Pior 2: ${data.worst2}`
+                              <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#22c55e" }} />
+                                    <span>Melhor 1: <strong>{data.best1}</strong> - {formatNumber(data.best1Value)} km/l</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#3b82f6" }} />
+                                    <span>Melhor 2: <strong>{data.best2}</strong> - {formatNumber(data.best2Value)} km/l</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#f97316" }} />
+                                    <span>Pior 1: <strong>{data.worst1}</strong> - {formatNumber(data.worst1Value)} km/l</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#ef4444" }} />
+                                    <span>Pior 2: <strong>{data.worst2}</strong> - {formatNumber(data.worst2Value)} km/l</span>
+                                  </div>
+                                </div>
+                              </div>
                             );
                           }
-                          return label;
+                          return null;
                         }}
                       />
                       <Legend 
@@ -217,10 +226,10 @@ export function GroupTabs({ data }: GroupTabsProps) {
                           return labels[value] || value;
                         }}
                       />
-                      <Line type="monotone" dataKey="best1Value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 4 }} name="best1Value" />
-                      <Line type="monotone" dataKey="best2Value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 4 }} name="best2Value" />
-                      <Line type="monotone" dataKey="worst1Value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 4 }} name="worst1Value" />
-                      <Line type="monotone" dataKey="worst2Value" stroke="hsl(var(--chart-5))" strokeWidth={2} dot={{ r: 4 }} name="worst2Value" />
+                      <Line type="monotone" dataKey="best1Value" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} name="best1Value" />
+                      <Line type="monotone" dataKey="best2Value" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} name="best2Value" />
+                      <Line type="monotone" dataKey="worst1Value" stroke="#f97316" strokeWidth={2} dot={{ r: 4 }} name="worst1Value" />
+                      <Line type="monotone" dataKey="worst2Value" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} name="worst2Value" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -237,15 +246,15 @@ export function GroupTabs({ data }: GroupTabsProps) {
                 </div>
               </div>
 
-              {/* Top 5 and Worst 5 Vehicles */}
+              {/* Top and Worst Vehicles */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-secondary/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Trophy className="w-4 h-4 text-accent" />
-                    <span className="font-medium text-sm">5 Melhores Veículos</span>
+                    <span className="font-medium text-sm">{top.length} Melhores Veículos</span>
                   </div>
                   <div className="space-y-3">
-                    {top5.map((vehicle, index) => {
+                    {top.map((vehicle, index) => {
                       const percentage = (vehicle.mediaCarregadoNum / topMax) * 100;
                       return (
                         <div key={vehicle.Veículo} className="flex items-center gap-3">
@@ -275,10 +284,10 @@ export function GroupTabs({ data }: GroupTabsProps) {
                 <div className="bg-secondary/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingDown className="w-4 h-4 text-destructive" />
-                    <span className="font-medium text-sm">5 Piores Veículos</span>
+                    <span className="font-medium text-sm">{worst.length} Piores Veículos</span>
                   </div>
                   <div className="space-y-3">
-                    {worst5.map((vehicle, index) => {
+                    {worst.map((vehicle, index) => {
                       const percentage = (vehicle.mediaCarregadoNum / worstMax) * 100;
                       return (
                         <div key={vehicle.Veículo} className="flex items-center gap-3">
