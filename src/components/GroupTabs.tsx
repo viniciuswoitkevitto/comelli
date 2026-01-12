@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProcessedFleetData } from "@/types/fleet";
 import { calculateFleetStats, getVehicleRanking, formatNumber, formatKm } from "@/utils/fleetUtils";
 import { StatCard } from "./StatCard";
-import { Gauge, Route, Truck, Award, AlertTriangle, Layers, Trophy, TrendingDown, Calendar } from "lucide-react";
+import { Gauge, Route, Truck, Award, AlertTriangle, Layers, Trophy, TrendingDown, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Button } from "@/components/ui/button";
 
 interface GroupTabsProps {
   data: ProcessedFleetData[];
@@ -141,6 +142,66 @@ export function GroupTabs({ data }: GroupTabsProps) {
   }, [groups, groupData]);
 
   if (groups.length === 0) return null;
+
+  const MonthlyTable = ({ grupo, monthlyData }: { grupo: string; monthlyData: typeof monthlyBestWorst[string] }) => {
+    const [showAll, setShowAll] = useState(false);
+    const reversedData = [...monthlyData].reverse();
+    const displayData = showAll ? reversedData : reversedData.slice(0, 4);
+    const hasMore = reversedData.length > 4;
+
+    return (
+      <div className="mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          {displayData.map((month) => (
+            <div key={month.mes} className="bg-background/50 rounded-lg p-2">
+              <div className="font-medium text-foreground mb-1">{month.mes}</div>
+              {month.vehicleCount === 1 ? (
+                <>
+                  <div style={{ color: "#22c55e" }}><span className="font-semibold">M1</span> {month.best1}</div>
+                  <div className="text-muted-foreground italic">Apenas 1 veículo disponível</div>
+                </>
+              ) : month.vehicleCount <= 3 ? (
+                <>
+                  <div style={{ color: "#22c55e" }}><span className="font-semibold">M1</span> {month.best1}</div>
+                  <div style={{ color: "#f97316" }}><span className="font-semibold">P1</span> {month.worst1}</div>
+                  <div className="text-muted-foreground italic">Apenas {month.vehicleCount} veículos</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ color: "#22c55e" }}><span className="font-semibold">M1</span> {month.best1}</div>
+                  <div style={{ color: "#3b82f6" }}><span className="font-semibold">M2</span> {month.best2}</div>
+                  <div style={{ color: "#f97316" }}><span className="font-semibold">P1</span> {month.worst1}</div>
+                  <div style={{ color: "#ef4444" }}><span className="font-semibold">P2</span> {month.worst2}</div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+        {hasMore && (
+          <div className="flex justify-center mt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAll(!showAll)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {showAll ? (
+                <>
+                  <ChevronUp className="w-4 h-4 mr-1" />
+                  Mostrar menos
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4 mr-1" />
+                  Mostrar mais ({reversedData.length - 4} meses)
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 animate-slide-up" style={{ animationDelay: "350ms" }}>
@@ -284,32 +345,7 @@ export function GroupTabs({ data }: GroupTabsProps) {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  {[...monthlyBestWorst[grupo]].reverse().map((month) => (
-                    <div key={month.mes} className="bg-background/50 rounded-lg p-2">
-                      <div className="font-medium text-foreground mb-1">{month.mes}</div>
-                      {month.vehicleCount === 1 ? (
-                        <>
-                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
-                          <div className="text-muted-foreground italic">Apenas 1 veículo disponível</div>
-                        </>
-                      ) : month.vehicleCount <= 3 ? (
-                        <>
-                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
-                          <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
-                          <div className="text-muted-foreground italic">Apenas {month.vehicleCount} veículos</div>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
-                          <div style={{ color: "#3b82f6" }}>🥈 {month.best2}</div>
-                          <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
-                          <div style={{ color: "#ef4444" }}>❌ {month.worst2}</div>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <MonthlyTable grupo={grupo} monthlyData={monthlyBestWorst[grupo]} />
               </div>
             </TabsContent>
           );
