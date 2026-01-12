@@ -228,19 +228,19 @@ export function GroupTabs({ data }: GroupTabsProps) {
                       />
                       <Line type="monotone" dataKey="best1Value" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} name="best1Value" />
                       <Line type="monotone" dataKey="best2Value" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} name="best2Value" />
-                      <Line type="monotone" dataKey="worst1Value" stroke="#f97316" strokeWidth={2} dot={{ r: 4 }} name="worst1Value" />
                       <Line type="monotone" dataKey="worst2Value" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} name="worst2Value" />
+                      <Line type="monotone" dataKey="worst1Value" stroke="#f97316" strokeWidth={2} dot={{ r: 4 }} name="worst1Value" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  {monthlyBestWorst[grupo].map((month, idx) => (
+                  {monthlyBestWorst[grupo].map((month) => (
                     <div key={month.mes} className="bg-background/50 rounded-lg p-2">
                       <div className="font-medium text-foreground mb-1">{month.mes}</div>
-                      <div className="text-accent">🏆 {month.best1}</div>
-                      <div className="text-chart-2">🥈 {month.best2}</div>
-                      <div className="text-chart-4">⚠️ {month.worst1}</div>
-                      <div className="text-destructive">❌ {month.worst2}</div>
+                      <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
+                      <div style={{ color: "#3b82f6" }}>🥈 {month.best2}</div>
+                      <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
+                      <div style={{ color: "#ef4444" }}>❌ {month.worst2}</div>
                     </div>
                   ))}
                 </div>
