@@ -52,8 +52,8 @@ export function ModelRanking({ models }: ModelRankingProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden mr-2">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       isTop ? "bg-accent" : "bg-destructive/60"
@@ -61,10 +61,10 @@ export function ModelRanking({ models }: ModelRankingProps) {
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {model.marca}
-                </span>
               </div>
+              <span className="text-xs text-muted-foreground">
+                {model.marca}
+              </span>
             </div>
           </div>
         );
