@@ -40,7 +40,7 @@ export function GroupTabs({ data }: GroupTabsProps) {
 
   // Get monthly best/worst vehicles per group
   const monthlyBestWorst = useMemo(() => {
-    const result: Record<string, { mes: string; best1: string; best1Value: number; best2: string; best2Value: number; worst1: string; worst1Value: number; worst2: string; worst2Value: number }[]> = {};
+    const result: Record<string, { mes: string; vehicleCount: number; best1: string; best1Value: number; best2: string; best2Value: number; worst1: string; worst1Value: number; worst2: string; worst2Value: number }[]> = {};
     
     groups.forEach((grupo) => {
       const gData = groupData[grupo];
@@ -70,11 +70,62 @@ export function GroupTabs({ data }: GroupTabsProps) {
           .map(([vehicle, stats]) => ({ vehicle, avg: stats.total / stats.count }))
           .sort((a, b) => b.avg - a.avg);
 
+        const vehicleCount = sorted.length;
+        
+        // Handle cases with only 1 vehicle
+        if (vehicleCount === 1) {
+          return {
+            mes,
+            vehicleCount,
+            best1: sorted[0]?.vehicle || "-",
+            best1Value: sorted[0]?.avg || 0,
+            best2: "",
+            best2Value: 0,
+            worst1: "",
+            worst1Value: 0,
+            worst2: "",
+            worst2Value: 0,
+          };
+        }
+        
+        // Handle cases with 2 vehicles
+        if (vehicleCount === 2) {
+          return {
+            mes,
+            vehicleCount,
+            best1: sorted[0]?.vehicle || "-",
+            best1Value: sorted[0]?.avg || 0,
+            best2: "",
+            best2Value: 0,
+            worst1: sorted[1]?.vehicle || "-",
+            worst1Value: sorted[1]?.avg || 0,
+            worst2: "",
+            worst2Value: 0,
+          };
+        }
+        
+        // Handle cases with 3 vehicles
+        if (vehicleCount === 3) {
+          return {
+            mes,
+            vehicleCount,
+            best1: sorted[0]?.vehicle || "-",
+            best1Value: sorted[0]?.avg || 0,
+            best2: "",
+            best2Value: 0,
+            worst1: sorted[2]?.vehicle || "-",
+            worst1Value: sorted[2]?.avg || 0,
+            worst2: "",
+            worst2Value: 0,
+          };
+        }
+
         const best = sorted.slice(0, 2);
         const worst = sorted.slice(-2).reverse();
 
         return {
           mes,
+          vehicleCount,
           best1: best[0]?.vehicle || "-",
           best1Value: best[0]?.avg || 0,
           best2: best[1]?.vehicle || "-",
@@ -237,10 +288,25 @@ export function GroupTabs({ data }: GroupTabsProps) {
                   {[...monthlyBestWorst[grupo]].reverse().map((month) => (
                     <div key={month.mes} className="bg-background/50 rounded-lg p-2">
                       <div className="font-medium text-foreground mb-1">{month.mes}</div>
-                      <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
-                      <div style={{ color: "#3b82f6" }}>🥈 {month.best2}</div>
-                      <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
-                      <div style={{ color: "#ef4444" }}>❌ {month.worst2}</div>
+                      {month.vehicleCount === 1 ? (
+                        <>
+                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
+                          <div className="text-muted-foreground italic">Apenas 1 veículo disponível</div>
+                        </>
+                      ) : month.vehicleCount <= 3 ? (
+                        <>
+                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
+                          <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
+                          <div className="text-muted-foreground italic">Apenas {month.vehicleCount} veículos</div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>
+                          <div style={{ color: "#3b82f6" }}>🥈 {month.best2}</div>
+                          <div style={{ color: "#f97316" }}>⚠️ {month.worst1}</div>
+                          <div style={{ color: "#ef4444" }}>❌ {month.worst2}</div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
