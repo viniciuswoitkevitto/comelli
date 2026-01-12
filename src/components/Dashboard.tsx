@@ -80,6 +80,11 @@ export function Dashboard({
           <GroupChart data={data} />
         </div>
 
+        {/* Group Tabs - Métricas por Grupo */}
+        <div className="mb-6">
+          <GroupTabs data={data} />
+        </div>
+
         {/* Vehicle Ranking - Full Width Horizontal */}
         <div className="mb-6">
           <VehicleRanking vehicles={vehicleRanking} />
@@ -88,11 +93,6 @@ export function Dashboard({
         {/* Model Ranking */}
         <div className="mb-6">
           <ModelRanking models={modelRanking} />
-        </div>
-
-        {/* Group Tabs */}
-        <div className="mb-6">
-          <GroupTabs data={data} />
         </div>
 
         {/* Data Table - Hidden by default */}
