@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProcessedFleetData } from "@/types/fleet";
 import { calculateFleetStats, getVehicleRanking, formatNumber, formatKm } from "@/utils/fleetUtils";
 import { StatCard } from "./StatCard";
-import { Gauge, Route, Truck, Award, AlertTriangle, Layers, Trophy, TrendingDown } from "lucide-react";
+import { Gauge, Route, Truck, Award, AlertTriangle, Layers, Trophy, TrendingDown, Calendar } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface GroupTabsProps {
   data: ProcessedFleetData[];
@@ -31,6 +32,56 @@ export function GroupTabs({ data }: GroupTabsProps) {
         top5: ranking.slice(0, 5),
         worst5: ranking.slice(-5).reverse(),
       };
+    });
+    return result;
+  }, [groups, groupData]);
+
+  // Get monthly best/worst vehicles per group
+  const monthlyBestWorst = useMemo(() => {
+    const result: Record<string, { mes: string; best1: string; best1Value: number; best2: string; best2Value: number; worst1: string; worst1Value: number; worst2: string; worst2Value: number }[]> = {};
+    
+    groups.forEach((grupo) => {
+      const gData = groupData[grupo];
+      const months = [...new Set(gData.map((d) => d.Mês))].sort((a, b) => {
+        const [mesA, anoA] = a.split("/");
+        const [mesB, anoB] = b.split("/");
+        return anoA.localeCompare(anoB) || mesA.localeCompare(mesB);
+      });
+
+      result[grupo] = months.map((mes) => {
+        const monthData = gData.filter((d) => d.Mês === mes);
+        
+        // Group by vehicle and calculate average
+        const vehicleAverages = new Map<string, { total: number; count: number }>();
+        monthData.forEach((item) => {
+          const existing = vehicleAverages.get(item.Veículo);
+          if (existing) {
+            existing.total += item.mediaCarregadoNum;
+            existing.count += 1;
+          } else {
+            vehicleAverages.set(item.Veículo, { total: item.mediaCarregadoNum, count: 1 });
+          }
+        });
+
+        const sorted = Array.from(vehicleAverages.entries())
+          .map(([vehicle, stats]) => ({ vehicle, avg: stats.total / stats.count }))
+          .sort((a, b) => b.avg - a.avg);
+
+        const best = sorted.slice(0, 2);
+        const worst = sorted.slice(-2).reverse();
+
+        return {
+          mes,
+          best1: best[0]?.vehicle || "-",
+          best1Value: best[0]?.avg || 0,
+          best2: best[1]?.vehicle || "-",
+          best2Value: best[1]?.avg || 0,
+          worst1: worst[0]?.vehicle || "-",
+          worst1Value: worst[0]?.avg || 0,
+          worst2: worst[1]?.vehicle || "-",
+          worst2Value: worst[1]?.avg || 0,
+        };
+      });
     });
     return result;
   }, [groups, groupData]);
@@ -107,6 +158,83 @@ export function GroupTabs({ data }: GroupTabsProps) {
                   icon={AlertTriangle}
                   delay={200}
                 />
+              </div>
+
+              {/* Monthly Best/Worst Chart */}
+              <div className="bg-secondary/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="w-4 h-4 text-chart-1" />
+                  <span className="font-medium text-sm">Melhores e Piores por Mês</span>
+                  <span className="text-xs text-muted-foreground ml-2">(Verifique se são os mesmos ao longo do tempo)</span>
+                </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyBestWorst[grupo]} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="mes" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                      <YAxis 
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        tickFormatter={(value) => value.toFixed(2)}
+                        domain={['auto', 'auto']}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: "hsl(var(--card))", 
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px"
+                        }}
+                        formatter={(value: number, name: string) => {
+                          const labels: Record<string, string> = {
+                            best1Value: "Melhor 1",
+                            best2Value: "Melhor 2",
+                            worst1Value: "Pior 1",
+                            worst2Value: "Pior 2"
+                          };
+                          return [formatNumber(value) + " km/l", labels[name] || name];
+                        }}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload.length > 0) {
+                            const data = payload[0].payload;
+                            return (
+                              `${label}\n` +
+                              `Melhor 1: ${data.best1}\n` +
+                              `Melhor 2: ${data.best2}\n` +
+                              `Pior 1: ${data.worst1}\n` +
+                              `Pior 2: ${data.worst2}`
+                            );
+                          }
+                          return label;
+                        }}
+                      />
+                      <Legend 
+                        formatter={(value) => {
+                          const labels: Record<string, string> = {
+                            best1Value: "Melhor 1",
+                            best2Value: "Melhor 2",
+                            worst1Value: "Pior 1",
+                            worst2Value: "Pior 2"
+                          };
+                          return labels[value] || value;
+                        }}
+                      />
+                      <Line type="monotone" dataKey="best1Value" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 4 }} name="best1Value" />
+                      <Line type="monotone" dataKey="best2Value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 4 }} name="best2Value" />
+                      <Line type="monotone" dataKey="worst1Value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={{ r: 4 }} name="worst1Value" />
+                      <Line type="monotone" dataKey="worst2Value" stroke="hsl(var(--chart-5))" strokeWidth={2} dot={{ r: 4 }} name="worst2Value" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  {monthlyBestWorst[grupo].map((month, idx) => (
+                    <div key={month.mes} className="bg-background/50 rounded-lg p-2">
+                      <div className="font-medium text-foreground mb-1">{month.mes}</div>
+                      <div className="text-accent">🏆 {month.best1}</div>
+                      <div className="text-chart-2">🥈 {month.best2}</div>
+                      <div className="text-chart-4">⚠️ {month.worst1}</div>
+                      <div className="text-destructive">❌ {month.worst2}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Top 5 and Worst 5 Vehicles */}
