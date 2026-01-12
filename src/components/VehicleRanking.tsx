@@ -22,7 +22,7 @@ export function VehicleRanking({ vehicles }: VehicleRankingProps) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex gap-3 overflow-x-auto pb-2">
         {vehicles.slice(0, 10).map((vehicle, index) => {
           const isAboveAvg = vehicle.mediaCarregadoNum >= avgMedia;
           
@@ -30,9 +30,9 @@ export function VehicleRanking({ vehicles }: VehicleRankingProps) {
             <div
               key={vehicle.Veículo}
               className={cn(
-                "flex items-center gap-4 p-3 rounded-xl transition-colors",
+                "flex flex-col items-center gap-2 p-3 rounded-xl transition-colors min-w-[120px] flex-shrink-0",
                 index === 0 && "bg-accent/10 border border-accent/20",
-                index > 0 && "hover:bg-secondary/50"
+                index > 0 && "hover:bg-secondary/50 bg-secondary/30"
               )}
             >
               <div
@@ -47,22 +47,22 @@ export function VehicleRanking({ vehicles }: VehicleRankingProps) {
                 {index + 1}
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">{vehicle.Veículo}</div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {vehicle.Marca} • {vehicle.Grupo}
+              <div className="text-center min-w-0">
+                <div className="font-semibold text-sm truncate max-w-[100px]">{vehicle.Veículo}</div>
+                <div className="text-xs text-muted-foreground truncate max-w-[100px]">
+                  {vehicle.Marca}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {isAboveAvg ? (
-                  <TrendingUp className="w-4 h-4 text-accent" />
+                  <TrendingUp className="w-3 h-3 text-accent" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-destructive" />
+                  <TrendingDown className="w-3 h-3 text-destructive" />
                 )}
                 <span
                   className={cn(
-                    "font-bold",
+                    "font-bold text-sm",
                     isAboveAvg ? "text-accent" : "text-destructive"
                   )}
                 >

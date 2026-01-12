@@ -125,9 +125,14 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
           <MonthlyTrendChart data={monthlyTrend} />
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Vehicle Ranking - Full Width Horizontal */}
+        <div className="mb-6">
           <VehicleRanking vehicles={vehicleRanking} />
+        </div>
+
+        {/* Model Ranking */}
+        <div className="mb-6">
+          <ModelRanking models={modelRanking} />
         </div>
 
         {/* Group Performance - Full Width */}
@@ -138,11 +143,6 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
         {/* Group Tabs */}
         <div className="mb-6">
           <GroupTabs data={data} />
-        </div>
-
-        {/* Model Ranking */}
-        <div className="mb-6">
-          <ModelRanking models={modelRanking} />
         </div>
 
         {/* Data Table - Hidden by default */}

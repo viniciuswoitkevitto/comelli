@@ -234,7 +234,7 @@ export function GroupTabs({ data }: GroupTabsProps) {
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  {monthlyBestWorst[grupo].map((month) => (
+                  {[...monthlyBestWorst[grupo]].reverse().map((month) => (
                     <div key={month.mes} className="bg-background/50 rounded-lg p-2">
                       <div className="font-medium text-foreground mb-1">{month.mes}</div>
                       <div style={{ color: "#22c55e" }}>🏆 {month.best1}</div>

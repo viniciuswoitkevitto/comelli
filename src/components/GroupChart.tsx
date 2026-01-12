@@ -79,7 +79,32 @@ export function GroupChart({ data }: GroupChartProps) {
                 borderRadius: "0.75rem",
               }}
               labelStyle={{ color: "hsl(var(--foreground))" }}
-              formatter={(value: number, name: string) => [formatNumber(value) + " km/l", name]}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length > 0) {
+                  // Sort payload by value (highest to lowest)
+                  const sortedPayload = [...payload].sort((a, b) => 
+                    (b.value as number) - (a.value as number)
+                  );
+                  return (
+                    <div className="bg-card border border-border rounded-xl p-3 shadow-lg">
+                      <div className="font-medium mb-2">{label}</div>
+                      <div className="space-y-1">
+                        {sortedPayload.map((entry, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <span 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: entry.color }} 
+                            />
+                            <span>{entry.name}:</span>
+                            <span className="font-bold">{formatNumber(entry.value as number)} km/l</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Legend />
             {groups.map((grupo, index) => (
