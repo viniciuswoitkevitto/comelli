@@ -31,7 +31,7 @@ export function Dashboard({
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 animate-fade-in">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold gradient-text">Comelli Transportes - Carga Viva</h1>
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text">Comelli Transportes</h1>
             <p className="text-muted-foreground mt-1">
               Frota de Carga Viva • {stats.totalVeiculos} veículos • {data.length} registros
             </p>
