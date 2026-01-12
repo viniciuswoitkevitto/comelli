@@ -6,13 +6,14 @@ import {
   getVehicleRanking,
   getGroupStats,
   getMonthlyTrend,
+  getModelStats,
   formatNumber,
   formatKm,
-  parseFleetData,
 } from "@/utils/fleetUtils";
 import { fetchGoogleSheetsData } from "@/utils/dataLoader";
 import { StatCard } from "./StatCard";
 import { VehicleRanking } from "./VehicleRanking";
+import { ModelRanking } from "./ModelRanking";
 import { GroupChart } from "./GroupChart";
 import { MonthlyTrendChart } from "./MonthlyTrendChart";
 import { DataTable } from "./DataTable";
@@ -27,6 +28,7 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const stats = useMemo(() => calculateFleetStats(data), [data]);
   const vehicleRanking = useMemo(() => getVehicleRanking(data), [data]);
+  const modelRanking = useMemo(() => getModelStats(data), [data]);
   const groupStats = useMemo(() => getGroupStats(data), [data]);
   const monthlyTrend = useMemo(() => getMonthlyTrend(data), [data]);
 
@@ -118,8 +120,9 @@ export function Dashboard({ data, onReset, onDataUpdate }: DashboardProps) {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <VehicleRanking vehicles={vehicleRanking} />
+          <ModelRanking models={modelRanking} />
           <GroupChart data={groupStats} />
         </div>
 
