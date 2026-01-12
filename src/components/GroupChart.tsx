@@ -59,7 +59,7 @@ export function GroupChart({ data }: GroupChartProps) {
         </div>
       </div>
 
-      <div className="h-64">
+      <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ left: 20, right: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
