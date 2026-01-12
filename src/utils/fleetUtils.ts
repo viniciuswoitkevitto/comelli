@@ -63,6 +63,33 @@ export function getVehicleRanking(data: ProcessedFleetData[]): ProcessedFleetDat
     .sort((a, b) => b.mediaCarregadoNum - a.mediaCarregadoNum);
 }
 
+export function getModelStats(data: ProcessedFleetData[]) {
+  const modelStats = new Map<string, { totalMedia: number; count: number; marca: string }>();
+
+  data.forEach((item) => {
+    const existing = modelStats.get(item.Modelo);
+    if (existing) {
+      existing.totalMedia += item.mediaCarregadoNum;
+      existing.count += 1;
+    } else {
+      modelStats.set(item.Modelo, {
+        totalMedia: item.mediaCarregadoNum,
+        count: 1,
+        marca: item.Marca,
+      });
+    }
+  });
+
+  return Array.from(modelStats.entries())
+    .map(([modelo, stats]) => ({
+      modelo,
+      marca: stats.marca,
+      mediaCarregado: stats.totalMedia / stats.count,
+      count: stats.count,
+    }))
+    .sort((a, b) => b.mediaCarregado - a.mediaCarregado);
+}
+
 export function getGroupStats(data: ProcessedFleetData[]) {
   const groupStats = new Map<string, { totalKm: number; totalMedia: number; count: number }>();
 
