@@ -10,6 +10,7 @@ import { GroupChart } from "./GroupChart";
 import { GroupTabs } from "./GroupTabs";
 import { MonthlyTrendChart } from "./MonthlyTrendChart";
 import { DataTable } from "./DataTable";
+import { VehiclePerformanceChart } from "./VehiclePerformanceChart";
 interface DashboardProps {
   data: ProcessedFleetData[];
   onReset: () => void;
@@ -83,6 +84,11 @@ export function Dashboard({
         {/* Group Tabs - Métricas por Grupo */}
         <div className="mb-6">
           <GroupTabs data={data} />
+        </div>
+
+        {/* Vehicle Performance Chart - Individual Vehicle */}
+        <div className="mb-6">
+          <VehiclePerformanceChart data={data} />
         </div>
 
         {/* Vehicle Ranking - Full Width Horizontal */}
