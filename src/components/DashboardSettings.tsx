@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, X } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sheet,
@@ -11,6 +11,15 @@ import {
 
 export interface DashboardVisibility {
   mainStats: boolean;
+  globalFilters: boolean;
+  attentionReport: boolean;
+  loadEfficiency: boolean;
+  consistency: boolean;
+  anomalyDetector: boolean;
+  heatmap: boolean;
+  vehicleComparator: boolean;
+  modelBenchmark: boolean;
+  trendIndicator: boolean;
   monthlyTrend: boolean;
   groupChart: boolean;
   groupTabs: boolean;
@@ -22,17 +31,35 @@ export interface DashboardVisibility {
 
 const defaultVisibility: DashboardVisibility = {
   mainStats: true,
+  globalFilters: true,
+  attentionReport: true,
+  loadEfficiency: true,
+  consistency: true,
+  anomalyDetector: true,
+  heatmap: true,
+  vehicleComparator: true,
+  modelBenchmark: true,
+  trendIndicator: true,
   monthlyTrend: true,
   groupChart: true,
   groupTabs: true,
   vehiclePerformance: true,
   vehicleRanking: true,
   modelRanking: true,
-  dataTable: true,
+  dataTable: false,
 };
 
 const sectionLabels: Record<keyof DashboardVisibility, string> = {
   mainStats: "Estatísticas Principais",
+  globalFilters: "Filtros e Exportação",
+  attentionReport: "Relatório de Atenção",
+  loadEfficiency: "Eficiência de Carga",
+  consistency: "Análise de Consistência",
+  anomalyDetector: "Detector de Anomalias",
+  heatmap: "Mapa de Calor",
+  vehicleComparator: "Comparador de Veículos",
+  modelBenchmark: "Benchmark por Modelo",
+  trendIndicator: "Indicadores de Tendência",
   monthlyTrend: "Tendência Mensal",
   groupChart: "Desempenho por Grupo",
   groupTabs: "Métricas por Grupo",
@@ -42,7 +69,7 @@ const sectionLabels: Record<keyof DashboardVisibility, string> = {
   dataTable: "Tabela de Dados",
 };
 
-const STORAGE_KEY = "dashboard-visibility";
+const STORAGE_KEY = "dashboard-visibility-v2";
 
 export function useDashboardVisibility() {
   const [visibility, setVisibility] = useState<DashboardVisibility>(() => {
@@ -102,7 +129,7 @@ export function DashboardSettings({
           </span>
         </button>
       </SheetTrigger>
-      <SheetContent className="w-[320px] sm:w-[400px]">
+      <SheetContent className="w-[320px] sm:w-[400px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
@@ -113,7 +140,7 @@ export function DashboardSettings({
           <p className="text-sm text-muted-foreground">
             Selecione quais seções deseja visualizar no dashboard.
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {(Object.keys(sectionLabels) as Array<keyof DashboardVisibility>).map(
               (section) => (
                 <label
