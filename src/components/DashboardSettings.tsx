@@ -12,15 +12,13 @@ import {
 export interface DashboardVisibility {
   mainStats: boolean;
   globalFilters: boolean;
+  monthlyTrend: boolean;
   attentionReport: boolean;
   loadEfficiency: boolean;
-  consistency: boolean;
   anomalyDetector: boolean;
-  heatmap: boolean;
   vehicleComparator: boolean;
   modelBenchmark: boolean;
   trendIndicator: boolean;
-  monthlyTrend: boolean;
   groupChart: boolean;
   groupTabs: boolean;
   vehiclePerformance: boolean;
@@ -32,15 +30,13 @@ export interface DashboardVisibility {
 const defaultVisibility: DashboardVisibility = {
   mainStats: true,
   globalFilters: true,
+  monthlyTrend: true,
   attentionReport: true,
   loadEfficiency: true,
-  consistency: true,
   anomalyDetector: true,
-  heatmap: true,
   vehicleComparator: true,
   modelBenchmark: true,
   trendIndicator: true,
-  monthlyTrend: true,
   groupChart: true,
   groupTabs: true,
   vehiclePerformance: true,
@@ -52,15 +48,13 @@ const defaultVisibility: DashboardVisibility = {
 const sectionLabels: Record<keyof DashboardVisibility, string> = {
   mainStats: "Estatísticas Principais",
   globalFilters: "Filtros e Exportação",
+  monthlyTrend: "Tendência Mensal",
   attentionReport: "Relatório de Atenção",
   loadEfficiency: "Eficiência de Carga",
-  consistency: "Análise de Consistência",
   anomalyDetector: "Detector de Anomalias",
-  heatmap: "Mapa de Calor",
   vehicleComparator: "Comparador de Veículos",
   modelBenchmark: "Benchmark por Modelo",
   trendIndicator: "Indicadores de Tendência",
-  monthlyTrend: "Tendência Mensal",
   groupChart: "Desempenho por Grupo",
   groupTabs: "Métricas por Grupo",
   vehiclePerformance: "Desempenho Individual",
