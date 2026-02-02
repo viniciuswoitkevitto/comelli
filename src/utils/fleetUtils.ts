@@ -1,10 +1,45 @@
 import { FleetData, ProcessedFleetData, FleetStats } from "@/types/fleet";
 
+// Robust number parser that handles various formats
+function parseNumericValue(value: string | number | null | undefined): number {
+  if (value === null || value === undefined || value === "") return 0;
+  if (typeof value === "number") return isNaN(value) ? 0 : value;
+
+  // Convert to string and clean
+  let cleaned = String(value).trim();
+  
+  // Remove whitespace and currency symbols
+  cleaned = cleaned.replace(/\s/g, "").replace(/[R$€$]/g, "");
+  
+  // Handle empty after cleaning
+  if (!cleaned) return 0;
+
+  const lastDot = cleaned.lastIndexOf(".");
+  const lastComma = cleaned.lastIndexOf(",");
+
+  if (lastDot === -1 && lastComma === -1) {
+    // No decimal separators - just parse
+    const num = parseFloat(cleaned.replace(/[^\d-]/g, ""));
+    return isNaN(num) ? 0 : num;
+  }
+
+  if (lastDot > lastComma) {
+    // US/UK format: 1,234.56 (remove thousand separators, keep decimal)
+    cleaned = cleaned.replace(/,/g, "");
+  } else if (lastComma > lastDot) {
+    // European/BR format: 1.234,56 (remove thousand separators, replace decimal)
+    cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+  }
+
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
 export function parseFleetData(data: FleetData[]): ProcessedFleetData[] {
   return data.map((item) => ({
     ...item,
-    mediaNum: parseFloat(item.Média.replace(",", ".")),
-    mediaCarregadoNum: parseFloat(item["Média Carregado"].replace(",", ".")),
+    mediaNum: parseNumericValue(item.Média),
+    mediaCarregadoNum: parseNumericValue(item["Média Carregado"]),
   }));
 }
 

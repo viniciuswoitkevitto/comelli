@@ -51,7 +51,13 @@ function parseCSVLine(line: string): string[] {
     const char = line[i];
     
     if (char === '"') {
-      inQuotes = !inQuotes;
+      // Handle escaped quotes ("")
+      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+        current += '"';
+        i++; // Skip the next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (char === "," && !inQuotes) {
       result.push(current.trim());
       current = "";
@@ -64,9 +70,32 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
+// Robust number parser for KM values (integers with possible formatting)
 function parseNumber(value: string): number {
-  const cleaned = value.replace(/[^\d]/g, "");
-  return parseInt(cleaned, 10) || 0;
+  if (!value || value.trim() === "") return 0;
+  
+  // Remove all non-digit characters except decimal separators
+  let cleaned = value.trim();
+  
+  // Check if it looks like a decimal number (has comma or dot as decimal separator)
+  const lastDot = cleaned.lastIndexOf(".");
+  const lastComma = cleaned.lastIndexOf(",");
+  
+  if (lastComma > lastDot && lastComma > cleaned.length - 4) {
+    // European format: remove dots (thousand sep), replace comma with dot
+    cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+    return Math.round(parseFloat(cleaned)) || 0;
+  }
+  
+  if (lastDot > lastComma && lastDot > cleaned.length - 4) {
+    // US format: remove commas (thousand sep)
+    cleaned = cleaned.replace(/,/g, "");
+    return Math.round(parseFloat(cleaned)) || 0;
+  }
+  
+  // Just extract digits
+  const digitsOnly = cleaned.replace(/[^\d]/g, "");
+  return parseInt(digitsOnly, 10) || 0;
 }
 
 export function parseXLSXFile(file: File): Promise<FleetData[]> {
