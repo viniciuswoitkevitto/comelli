@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Layers } from "lucide-react";
 import { ProcessedFleetData } from "@/types/fleet";
@@ -24,13 +24,24 @@ const FALLBACK_COLORS = [
   "#84cc16", // Lima
   "#f97316", // Laranja
   "#6366f1", // Índigo
+  "#14b8a6", // Teal
+  "#a855f7", // Roxo
+  "#f43f5e", // Rosa forte
+  "#22c55e", // Verde
+  "#eab308", // Amarelo
 ];
 
+const MAX_INITIAL_GROUPS = 5;
+
 export function GroupChart({ data }: GroupChartProps) {
+  const groups = useMemo(() => [...new Set(data.map((d) => d.Grupo))].sort(), [data]);
+  
+  // Initialize with only the first 5 groups active
+  const [activeGroups, setActiveGroups] = useState<Set<string>>(() => {
+    return new Set(groups.slice(0, MAX_INITIAL_GROUPS));
+  });
+
   const chartData = useMemo(() => {
-    // Get all unique groups
-    const groups = [...new Set(data.map((d) => d.Grupo))].sort();
-    
     // Get all unique months sorted from oldest to most recent (left to right)
     const months = [...new Set(data.map((d) => d.Mês))].sort((a, b) => {
       const [mesA, anoA] = a.split("/");
@@ -53,9 +64,60 @@ export function GroupChart({ data }: GroupChartProps) {
 
       return result;
     });
-  }, [data]);
+  }, [data, groups]);
 
-  const groups = useMemo(() => [...new Set(data.map((d) => d.Grupo))].sort(), [data]);
+  const getGroupColor = useCallback((grupo: string, index: number) => {
+    return GROUP_COLORS[grupo] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+  }, []);
+
+  const handleLegendClick = useCallback((dataKey: string) => {
+    setActiveGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(dataKey)) {
+        newSet.delete(dataKey);
+      } else {
+        newSet.add(dataKey);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const renderLegend = useCallback((props: { payload?: Array<{ value: string; color: string; dataKey: string }> }) => {
+    const { payload } = props;
+    if (!payload) return null;
+
+    return (
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
+        {payload.map((entry, index) => {
+          const isActive = activeGroups.has(entry.dataKey);
+          return (
+            <button
+              key={`legend-${index}`}
+              onClick={() => handleLegendClick(entry.dataKey)}
+              className={`
+                flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all
+                ${isActive 
+                  ? 'opacity-100' 
+                  : 'opacity-40 hover:opacity-60'
+                }
+              `}
+              style={{
+                backgroundColor: isActive ? `${entry.color}20` : 'transparent',
+                border: `1px solid ${entry.color}`,
+                color: entry.color,
+              }}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              {entry.value}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }, [activeGroups, handleLegendClick]);
 
   return (
     <div className="glass-card rounded-2xl p-6 animate-slide-up w-full" style={{ animationDelay: "300ms" }}>
@@ -66,6 +128,9 @@ export function GroupChart({ data }: GroupChartProps) {
         <div>
           <h3 className="font-semibold text-lg">Desempenho por Grupo</h3>
           <p className="text-sm text-muted-foreground">Média carregado por grupo ao longo do tempo (km/l)</p>
+        </div>
+        <div className="ml-auto text-xs text-muted-foreground">
+          {activeGroups.size}/{groups.length} grupos ativos
         </div>
       </div>
 
@@ -116,9 +181,10 @@ export function GroupChart({ data }: GroupChartProps) {
                 return null;
               }}
             />
-            <Legend />
+            <Legend content={renderLegend} />
             {groups.map((grupo, index) => {
-              const color = GROUP_COLORS[grupo] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+              const color = getGroupColor(grupo, index);
+              const isActive = activeGroups.has(grupo);
               return (
                 <Line
                   key={grupo}
@@ -128,6 +194,7 @@ export function GroupChart({ data }: GroupChartProps) {
                   strokeWidth={2}
                   dot={{ r: 4, fill: color }}
                   name={grupo}
+                  hide={!isActive}
                 />
               );
             })}
