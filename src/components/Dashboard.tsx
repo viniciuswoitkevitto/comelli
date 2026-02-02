@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Gauge, Route, Truck, RefreshCw, Cloud, Loader2 } from "lucide-react";
 import { ProcessedFleetData, FleetData } from "@/types/fleet";
 import { calculateFleetStats, getVehicleRanking, getGroupStats, getMonthlyTrend, getModelStats, formatNumber, formatKm } from "@/utils/fleetUtils";
-import { calculateLoadEfficiency, calculateConsistency, detectAnomalies, calculateModelBenchmark, calculateHeatmapData, calculateTrends, generateAttentionReport } from "@/utils/analysisUtils";
+import { calculateLoadEfficiency, detectAnomalies, calculateModelBenchmark, calculateTrends, generateAttentionReport } from "@/utils/analysisUtils";
 import { fetchGoogleSheetsData } from "@/utils/dataLoader";
 import { StatCard } from "./StatCard";
 import { VehicleRanking } from "./VehicleRanking";
@@ -15,11 +15,9 @@ import { VehiclePerformanceChart } from "./VehiclePerformanceChart";
 import { DashboardSettings, useDashboardVisibility } from "./DashboardSettings";
 import { GlobalFilters } from "./GlobalFilters";
 import { LoadEfficiencyCard } from "./LoadEfficiencyCard";
-import { ConsistencyCard } from "./ConsistencyCard";
 import { AnomalyDetector } from "./AnomalyDetector";
 import { VehicleComparator } from "./VehicleComparator";
 import { ModelBenchmarkCard } from "./ModelBenchmarkCard";
-import { PerformanceHeatmap } from "./PerformanceHeatmap";
 import { TrendIndicator } from "./TrendIndicator";
 import { AttentionReport } from "./AttentionReport";
 
@@ -50,14 +48,12 @@ export function Dashboard({
   
   // New analysis calculations
   const loadEfficiency = useMemo(() => calculateLoadEfficiency(activeData), [activeData]);
-  const consistency = useMemo(() => calculateConsistency(activeData), [activeData]);
   const anomalies = useMemo(() => detectAnomalies(activeData), [activeData]);
   const modelBenchmark = useMemo(() => calculateModelBenchmark(activeData), [activeData]);
-  const { heatmap, meses } = useMemo(() => calculateHeatmapData(activeData), [activeData]);
   const trends = useMemo(() => calculateTrends(activeData), [activeData]);
   const attentionReport = useMemo(() => 
-    generateAttentionReport(activeData, loadEfficiency, consistency, anomalies, trends), 
-    [activeData, loadEfficiency, consistency, anomalies, trends]
+    generateAttentionReport(activeData, loadEfficiency, anomalies, trends), 
+    [activeData, loadEfficiency, anomalies, trends]
   );
 
   const handleFilterChange = (newData: ProcessedFleetData[]) => {
@@ -132,6 +128,13 @@ export function Dashboard({
           </div>
         )}
 
+        {/* Monthly Trend - moved to top */}
+        {visibility.monthlyTrend && (
+          <div className="mb-6">
+            <MonthlyTrendChart data={monthlyTrend} />
+          </div>
+        )}
+
         {/* Attention Report */}
         {visibility.attentionReport && (
           <div className="mb-6">
@@ -140,18 +143,10 @@ export function Dashboard({
         )}
 
         {/* Analysis Cards Row */}
-        {(visibility.loadEfficiency || visibility.consistency || visibility.anomalyDetector) && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {(visibility.loadEfficiency || visibility.anomalyDetector) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {visibility.loadEfficiency && <LoadEfficiencyCard data={loadEfficiency} />}
-            {visibility.consistency && <ConsistencyCard data={consistency} />}
             {visibility.anomalyDetector && <AnomalyDetector data={anomalies} />}
-          </div>
-        )}
-
-        {/* Heatmap */}
-        {visibility.heatmap && (
-          <div className="mb-6">
-            <PerformanceHeatmap data={heatmap} meses={meses} />
           </div>
         )}
 
@@ -167,13 +162,6 @@ export function Dashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {visibility.modelBenchmark && <ModelBenchmarkCard data={modelBenchmark} />}
             {visibility.trendIndicator && <TrendIndicator data={trends} />}
-          </div>
-        )}
-
-        {/* Monthly Trend */}
-        {visibility.monthlyTrend && (
-          <div className="mb-6">
-            <MonthlyTrendChart data={monthlyTrend} />
           </div>
         )}
 

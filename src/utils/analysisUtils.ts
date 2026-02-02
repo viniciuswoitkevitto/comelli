@@ -385,7 +385,6 @@ export interface AttentionVehicle {
 export function generateAttentionReport(
   data: ProcessedFleetData[],
   loadEfficiency: LoadEfficiencyData[],
-  consistency: ConsistencyData[],
   anomalies: AnomalyData[],
   trends: TrendData[]
 ): AttentionVehicle[] {
@@ -413,22 +412,6 @@ export function generateAttentionReport(
       existing.problemas.push(`Baixa eficiência de carga: ${le.eficiencia.toFixed(0)}%`);
       existing.score += 3;
       vehicleProblems.set(le.veiculo, existing);
-    }
-  });
-
-  // Check consistency
-  consistency.forEach((c) => {
-    if (c.isInconsistent) {
-      const existing = vehicleProblems.get(c.veiculo) || { 
-        problemas: [], 
-        score: 0, 
-        marca: c.marca, 
-        modelo: c.modelo, 
-        grupo: c.grupo 
-      };
-      existing.problemas.push(`Alta variação: CV ${c.coeficienteVariacao.toFixed(1)}%`);
-      existing.score += 2;
-      vehicleProblems.set(c.veiculo, existing);
     }
   });
 
